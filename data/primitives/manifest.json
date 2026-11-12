@@ -1,0 +1,86 @@
+{
+  "format": "combined-primitives-v1",
+  "counts": {
+    "d1": {
+      "tasks": 300,
+      "responses": 600,
+      "tokens": 1580359
+    },
+    "d2": {
+      "tasks": 297,
+      "responses": 594,
+      "tokens": 1628642
+    },
+    "core_spot": {
+      "tasks": 216,
+      "responses": 432,
+      "tokens": 1186769
+    }
+  },
+  "models": {
+    "phi4mr": [
+      "microsoft/Phi-4-mini-reasoning",
+      "0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
+    ],
+    "qwen34b": [
+      "Qwen/Qwen3-4B",
+      "1cfa9a7208912126459214e8b04321603b3df60c"
+    ]
+  },
+  "layers": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28
+  ],
+  "k": 50,
+  "meta": 8,
+  "seed": 0,
+  "pca": null,
+  "annotation_context": "These clusters contain tokens from language-model responses to narrative reasoning questions. Describe the function supported by the token evidence and excerpts. Do not assume a particular question, dataset, model, or correct answer.",
+  "source_sha256": {
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/tasks.parquet": "ef7637d31f6b30f8c644b4d332b938795d477245e43c8f13c78516f9f204e114",
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/responses.parquet": "692f3617d2a5cbb593d2624b7d9bc1df1763b7dca085ffc87cfcf55ad8ba4b55",
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/item_lookup.parquet": "14a4ed361e14075719943dbaf841cb8f2cccca6e49bf2e37035d4f6d266a80fe",
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/persons.parquet": "1ce63745dda237e1131cbad6c8edb84bd417de5c095753c70d3765d6b5c41b86",
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/bindings.parquet": "69f64028b8a63bc020b97bffd6c72dee06f80526c4a16456401dce88bfc656b3",
+    "results/schema_llm/export/20260915-binding_dyn_d1_v3w2/tokens.parquet": "0c307135916e152c571bb483939e0326dc8d7e10d87fbd0965791feb533e3f66",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/tasks.parquet": "98f05ae66f02b693c3018ddb95265df91a5680263b3ba8caee339919990b24f4",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/responses.parquet": "f305f9b24c3bbb2c19b51a9d12f97025d8faa5f65cdff1fa5a1bc6992072014d",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/item_lookup.parquet": "3a4ee42a6a217a4aec2b7ae1377ae580be8de84cc4a879f8129ea067b3456e72",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/persons.parquet": "0787dfa46400b3867eb85d4997e1a44906bfb134263f726e8f98fdf56343e22c",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/bindings.parquet": "f8dd2a2729b682f334c6ace85c7650d89dafe440577aa7c3050bf78d27932804",
+    "results/schema_llm/export/20260915-binding_dyn_d2_v3w2/tokens.parquet": "b85a7dd8c2782b1245708d47735c870b4ef0935b3df351329fefd8f4f9329bc8",
+    "results/schema_llm/export/20260824-rlreasoning_v1/tasks.parquet": "ff26f319bce78cbda35e5c9fe57b267b57a8d68d3c1a6859f31a5c493a026100",
+    "results/schema_llm/export/20260824-rlreasoning_v1/responses.parquet": "27a5a193d324daa60e6fd93bb3e1f6a46783b49fe9c8c578d0fc325ac55bed12",
+    "results/schema_llm/export/20260824-rlreasoning_v1/item_lookup.parquet": "c5c17e2a8c28040d787c2a46b1841a06e951c32851324c8da696a876065b86e7",
+    "results/schema_llm/export/20260824-rlreasoning_v1/tokens.parquet": "0cc21cc5bce81f1e1e607579fe5ca879cfcb730c6f439392a4031d4cf427d9dc"
+  },
+  "code_sha256": {
+    "code/dev/schema_llm/primitives/_cluster.py": "ac4aaf6fb4c0d32d262e591faf71056dbce66f34f9e0bcb888837a338b06818c",
+    "code/dev/schema_llm/primitives/_text.py": "421c667545ebf39191904564563fd29e92dd5771c9ee957bf0665d2e2d8137ca",
+    "code/dev/schema_llm/primitives/depth_metacluster.py": "eb48e1435de1903d6ff5c95331858ff364b5d9dbd203c8917b87cce6f5377d3e",
+    "code/dev/schema_llm/primitives/crossmodel/merge.py": "3133913550854b9d944bdee32b882cb2b20d8156acf61f827f996dc01337fa2d",
+    "code/dev/schema_llm/core/model.py": "cc6fa833c12a6e7cf1248fe39764c223d6deaf6d08190740b313b3ca0a20f12c",
+    "code/dev/schema_llm/core/llm.py": "d23a8f13ef401636f6d2e8306aca5b3a7d032a7ecc5c31a8b952a2a0087975ba",
+    "code/dev/schema_llm/core/runio.py": "425dd0adef63825f7f13902e809e2a810811a73f9cacee4b5215ac7e1aa4b4fb"
+  },
+  "files": {
+    "persons.parquet": "e3937004e21019125b914206a810b98157ba21f908cbf9393c91f1082583d0cf",
+    "item_lookup.parquet": "ffba97003a2a87fc15e18af11d82d7c072a995290d0cca6a001d7d31030dcb47",
+    "sequences.parquet": "35a1772ec7e1f00e4a5bb38c3605388121b99cc784d987a3994e9cfed907af0e",
+    "responses.parquet": "cb2af02278be4ce2fe3aecead6d515ef19bbd15b6d103d5ec0a232b6581f2e57",
+    "bindings.parquet": "4438f0754eb28ad15d3da00084d06b69e4a99257c87d1890eb7744c02411184e",
+    "tasks.parquet": "c29c4eec5bb56bc569ffd9968984376d014f8f387efd154cd9cd79aa73a4caf7"
+  },
+  "notes": [
+    "Task is confounded with corpus: discovery/exploratory comparisons only.",
+    "Use sequence token IDs, never re-tokenize tasks.prompt_text.",
+    "Original merged IDs and assignments are deliberately excluded.",
+    "D1/D2 include both waves; retain wave/family/design metadata."
+  ]
+}

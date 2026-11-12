@@ -1,0 +1,135 @@
+[project]
+name = "algo-grammar-schema"
+version = "0.1.0"
+description = "Research project: algorithmic grammar/schema (working title)."
+readme = "README.md"
+requires-python = ">=3.11"
+# Conservative lower bounds for reproducibility (exact versions are pinned in uv.lock). numpy carries
+# an upper bound because the fp16 latent-capture path is version-sensitive (audit DEP-08). jupyterlab
+# moved to the `dev` extra — it is a notebook tool, not a package runtime dependency (audit DEP-03).
+dependencies = [
+    "numpy>=1.26,<3",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "scikit-learn>=1.3",
+    "scipy>=1.11",
+    "joblib>=1.3",
+    "pyyaml>=6.0",
+    "networkx>=3.6.1",
+    # OLS/GLM fits behind the reasoning-token behaviour analysis
+    # (`explore.reasoning_token_behavior`); pinned <1 because the formula API is pre-1.0.
+    "statsmodels>=0.14,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "ipykernel",
+    "jupyterlab",
+]
+# Heavy model stack used by the reference code (code/reference/algotrace) for live
+# activation extraction and function-vector interventions, AND by the depth_metacluster
+# cross-layer merge's default embedding backend (`--merge-embed`, Qwen3-Embedding-4B). Needs a
+# GPU + model weights in practice, so it is kept optional to keep CPU-only analysis lightweight
+# (the embed backend lazy-imports and errors with an actionable hint if absent).
+# Install with:  uv sync --extra gpu
+gpu = [
+    "torch",
+    "transformers",
+    "accelerate",
+    # LoRA adapters for the RLVR/drgrpo training + evaluation path (rlvr.drgrpo.hf_adapter and
+    # the rlvr.primitive_options SFT/eval modules). Lazy-imported behind an actionable error, so
+    # the CPU suite stays green without it — which is exactly why its absence went unnoticed.
+    "peft",
+    # Not on PyPI — David Bau's research toolkit (TraceDict etc.). Pinned to a commit for
+    # reproducibility / supply-chain safety (audit SEC-06).
+    "baukit @ git+https://github.com/davidbau/baukit@9d51abd51ebf29769aecc38c4cbef459b731a36e",
+]
+# Community-detection stack for the CPM cross-layer merges (`--merge semantic-cpm` / the retired
+# `leiden-cpm`): Leiden on the semantic/token graph. Pure CPU; lazy-imported and errors with an
+# actionable hint if absent. Not needed for the default `semantic-avglink` merge.
+# Install with:  uv sync --extra merge
+merge = [
+    "leidenalg>=0.10",
+    "igraph>=0.11",
+]
+# API subject / judge backends: Azure OpenAI (TRAPI) via the `openai` SDK with Entra ID auth
+# (azure-identity). Pure Python, no GPU. Install with:  uv sync --extra api
+api = [
+    "openai",
+    "azure-identity",
+]
+# Client side of the local vLLM backend (`subjects.collect --backend vllm`): just the OpenAI SDK,
+# which talks HTTP to a LOCAL vLLM OpenAI-compatible server. The vLLM SERVER itself is deliberately
+# NOT a dependency here -- it hard-pins `torch==2.11.0`, which conflicts with the `gpu` extra's
+# torch, so it runs in its OWN isolated venv managed by `scripts/schema_llm/vllm_serve.sh` (see
+# that script + scripts/schema_llm/README.md). Install the client with:  uv sync --extra vllm
+vllm = [
+    "openai",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# PEP 735 group, installed by `uv sync`/`uv run` *by default* — unlike the `dev` extra above, which
+# needs an explicit `--extra dev`. Kept separate for exactly that reason: the latent bundle
+# export/verify path (`explore.export_bundle` / `explore.verify_bundle` / `explore.recode_activations`)
+# must import without any extra flags, including in CI.
+[dependency-groups]
+dev = [
+    # Parquet tables in the exported latent bundles.
+    "pyarrow>=25.0.1",
+    # Chunked on-disk activation stores (the .npy → zarr recode path).
+    "zarr>=3.1.6",
+]
+
+[tool.hatch.metadata]
+# Required because the optional `gpu` extra pins `baukit` via a git URL.
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["code/dev"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["code/reference"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Byte-exact LLM prompt templates (reproducibility > reflowing prompt lines to 100 cols).
+"code/dev/schema_llm/primitives/behavior_primitives/prompts.py" = ["E501"]
+# Byte-exact copies of collaborator notebook cells: the strings must match the .ipynb source
+# character for character to substitute, so they cannot be reflowed.
+"code/dev/schema_llm/explore/binding_onset/port_notebook.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["code/dev"]
+markers = [
+    "gpu: requires a real GPU + model weights (skipped in CPU CI)",
+    "realdata: requires the 609GB results/schema_llm/data tree (skipped when absent, e.g. CI)",
+    "slow: long-running (minutes) — e.g. cross-validated decoders on real captures",
+]
+
+[tool.coverage.run]
+# Measure the package, not the tests (the raw --cov=dev.schema_llm otherwise counts test files
+# as ~100% covered and inflates the headline). See audit finding TST-02.
+source = ["dev.schema_llm"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+# Conservative floor (current production coverage ≈58%). Raise as Phase-3 test work lands.
+fail_under = 55
+
+[tool.deptry]
+# `dev` is the first-party package (installed editable); tests import it, which deptry would otherwise
+# flag as a transitive-dependency (DEP003) false positive. See audit DEP-02.
+known_first_party = ["dev"]

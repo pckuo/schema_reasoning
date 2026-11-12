@@ -1,0 +1,92 @@
+{
+  "vector_gate": {
+    "cosine_atol": 0.001,
+    "scale_atol": 0.01,
+    "median_atol": 0.05
+  },
+  "schema": {
+    "name": "main",
+    "arms": [
+      "stop",
+      "shuffled",
+      "switch",
+      "solved"
+    ],
+    "doses": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "layer": 16
+  },
+  "tsp": {
+    "cap": 16384,
+    "draws": 2,
+    "layer": 16,
+    "max_batch": 12,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "locations": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "schedule": "sustained",
+    "system_prompt": true
+  },
+  "ablations": [
+    {
+      "name": "layer8",
+      "arms": [
+        "stop",
+        "shuffled"
+      ],
+      "doses": [
+        0.25,
+        0.5,
+        1.0
+      ],
+      "layer": 8
+    },
+    {
+      "name": "layer24",
+      "arms": [
+        "stop",
+        "shuffled"
+      ],
+      "doses": [
+        0.25,
+        0.5,
+        1.0
+      ],
+      "layer": 24
+    },
+    {
+      "name": "sampling",
+      "arms": [
+        "stop",
+        "shuffled"
+      ],
+      "doses": [
+        0.25,
+        0.5
+      ],
+      "draws": 3,
+      "temperature": 0.7
+    },
+    {
+      "name": "oneshot",
+      "arms": [
+        "stop",
+        "shuffled"
+      ],
+      "doses": [
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "schedule": "once"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+"""Torch-free task environment contracts shared by RLVR methods."""
+
+from .judge import JudgeScore, JudgeUnavailable, resolve_judge_root
+from .metrics import (
+    EVAL_MATCHED_ADVANTAGE_TARGETS,
+    require_exact_keys,
+    summarize_advantage_diagnostics,
+    summarize_graded_items,
+    summarize_graded_rollouts,
+)
+from .parsing import ParsedResponse, parse_response, split_reasoning
+from .rewards import (
+    IdentifyRoleVerdict,
+    IdentifyVerdict,
+    RewardContractError,
+    RewardResult,
+    SpotVerdict,
+    compute_reward,
+    identify_reward,
+    identify_verdict_from_dict,
+    reward_contract_hash,
+    spot_reward,
+    spot_verdict_from_dict,
+)
+from .roots import (
+    EVAL_MATCHED_CONDITIONS,
+    EVAL_MATCHED_SCHEMAS,
+    EVAL_MATCHED_SUPERBLOCK_SPOTS,
+    assert_isolation,
+    derive_seed,
+    normalize_prompt,
+    order_for_training,
+    prompt_hash,
+    select_eval_matched_training_roots,
+    sha256_order_key,
+    validate_eval_matched_training_roots,
+)
+
+__all__ = [
+    "IdentifyRoleVerdict",
+    "IdentifyVerdict",
+    "JudgeScore",
+    "JudgeUnavailable",
+    "EVAL_MATCHED_ADVANTAGE_TARGETS",
+    "EVAL_MATCHED_CONDITIONS",
+    "EVAL_MATCHED_SCHEMAS",
+    "EVAL_MATCHED_SUPERBLOCK_SPOTS",
+    "ParsedResponse",
+    "RewardContractError",
+    "RewardResult",
+    "SpotVerdict",
+    "assert_isolation",
+    "compute_reward",
+    "derive_seed",
+    "identify_reward",
+    "identify_verdict_from_dict",
+    "normalize_prompt",
+    "order_for_training",
+    "parse_response",
+    "prompt_hash",
+    "require_exact_keys",
+    "resolve_judge_root",
+    "reward_contract_hash",
+    "select_eval_matched_training_roots",
+    "sha256_order_key",
+    "split_reasoning",
+    "spot_reward",
+    "spot_verdict_from_dict",
+    "summarize_advantage_diagnostics",
+    "summarize_graded_items",
+    "summarize_graded_rollouts",
+    "validate_eval_matched_training_roots",
+]

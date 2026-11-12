@@ -1,0 +1,13 @@
+{
+  "norm_cut": 62.84558868408203,
+  "expected_norm_cut": 62.8,
+  "norm_cut_matches": true,
+  "dropped": 1263,
+  "total": 92006,
+  "dropped_share": 0.013727365606590875,
+  "expected_dropped": 1263,
+  "max_norm": 69.28356170654297,
+  "last3_runs": 496,
+  "ref_stop_runs": 3460,
+  "expected_last3_runs": 496
+}

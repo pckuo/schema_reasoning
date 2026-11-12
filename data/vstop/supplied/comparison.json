@@ -1,0 +1,82 @@
+{
+  "sha256": "bc13ab6cf4aba7689d21e5e9d75c9a686b083a1406d7e299d4257e608e87ea69",
+  "arrays": {
+    "stop": {
+      "shape": [
+        3072
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "norm": 1.0
+    },
+    "shuffled": {
+      "shape": [
+        3072
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "norm": 1.0
+    },
+    "switch": {
+      "shape": [
+        3072
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "norm": 0.9999999403953552
+    },
+    "solved": {
+      "shape": [
+        3072
+      ],
+      "dtype": "float32",
+      "finite": true,
+      "norm": 1.0000001192092896
+    }
+  },
+  "missing_reference_vectors": [
+    "random"
+  ],
+  "cosine_atol": 0.001,
+  "residual_cosines": {
+    "stop|shuffled": {
+      "actual": 0.09485509991645813,
+      "reference": 0.09470775723457336,
+      "delta": 0.00014734268188476562,
+      "within_tolerance": true
+    },
+    "stop|switch": {
+      "actual": -0.21698147058486938,
+      "reference": -0.2170971781015396,
+      "delta": 0.00011570751667022705,
+      "within_tolerance": true
+    },
+    "stop|solved": {
+      "actual": -0.11666612327098846,
+      "reference": -0.11751401424407959,
+      "delta": 0.0008478909730911255,
+      "within_tolerance": true
+    },
+    "shuffled|switch": {
+      "actual": -0.030598923563957214,
+      "reference": -0.025025079026818275,
+      "delta": 0.005573844537138939,
+      "within_tolerance": false
+    },
+    "shuffled|solved": {
+      "actual": 0.3544576168060303,
+      "reference": 0.3513713479042053,
+      "delta": 0.003086268901824951,
+      "within_tolerance": false
+    },
+    "switch|solved": {
+      "actual": -0.42021456360816956,
+      "reference": -0.4199924170970917,
+      "delta": 0.00022214651107788086,
+      "within_tolerance": true
+    }
+  },
+  "used_by_default_runner": true,
+  "originating_run_verified": false,
+  "reference_cosine_differences_accepted_by_user": true
+}
