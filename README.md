@@ -31,7 +31,7 @@ To reproduce STOP experiments independently, run the documented checks/smoke tes
 bash scripts/run_vstop.sh --out /storage/vstop
 ```
 
-All three shell scripts install the locked environment automatically. Python 3.12 is selected by
+All shell scripts install the locked environment automatically. Python 3.12 is selected by
 `.python-version`; retain it because the STOP shuffled control depends on NumPy's
 seed stream. Do not run both jobs concurrently on one GPU without checking capacity.
 
@@ -39,6 +39,7 @@ seed stream. Do not run both jobs concurrently on one GPU without checking capac
 | --- | --- |
 | `scripts/run_primitives.sh` | Capture, cluster and label; optionally defer merging |
 | `scripts/merge_primitives.sh` | Merge completed extractions and export shared assignments |
+| `scripts/generate_tsp_responses.sh` | Generate TSP responses and an extraction input pack |
 | `scripts/run_vstop.sh` | Reproduce schema/TSP STOP experiments using supplied vectors |
 
 As an alternative, `bash scripts/run_primitives.sh --out /storage/primitives` performs capture,
@@ -123,8 +124,9 @@ writes `extraction.json`, so its completed extraction folder can be reused by th
 `--extract-only` stops after capture, clustering and fine/meta labeling; it writes the reusable
 node results and `extraction.json`, but final token tables are produced by the merge step.
 
-When TSP arrives, convert it to a separate normalized pack first (see `INPUT_FORMAT.md`).
-The raw TSP format is not known yet, so a raw-file importer is not included. Once converted:
+To generate TSP responses here, use the next section; its output pack can be used directly.
+For external responses, prepare a separate normalized pack first (see `INPUT_FORMAT.md`).
+An importer for unknown external formats is not included. Once prepared:
 
 ```bash
 bash scripts/run_primitives.sh --input /storage/tsp-input --check-only
@@ -166,6 +168,44 @@ Token IDs override stale prompt-text metadata in 72 core spot_error task rows.
 
 Optional `PHI_MODEL`, `QWEN_MODEL`, `PHI_REVISION`, `QWEN_REVISION` and `EMBED_MODEL`
 variables select local copies for this workflow. They must be the same weights/tokenizers.
+
+## Generate new TSP responses
+
+The pack includes the previously selected 100 TSP problems (levels 1–8). Generate one sampled
+response per problem for each pinned Phi/Qwen model; no TRAPI login is needed for generation:
+
+```bash
+bash scripts/generate_tsp_responses.sh --check-only
+bash scripts/generate_tsp_responses.sh --smoke --out /storage/tsp-generation-smoke
+bash scripts/generate_tsp_responses.sh --out /storage/tsp-generation
+
+bash scripts/run_primitives.sh \
+  --input /storage/tsp-generation/pack --extract-only --out /storage/tsp
+bash scripts/merge_primitives.sh \
+  --from schema=/storage/schema --from tsp=/storage/tsp \
+  --out /storage/merge-schema-tsp
+```
+
+Generation uses temperature 0.8, top-p 0.95, top-k 50, one draw, no extra system message,
+Phi's packed instruct template and Qwen thinking enabled. The default completion cap is 32,768;
+`--max-new-tokens 8192` selects the D1/D2 length budget instead. Models download automatically.
+The two models run sequentially. No latent capture or labeling happens during generation.
+Cluster labeling in the later extraction step requires the TRAPI setup above.
+
+`--check-only` validates task inputs without loading weights. `--smoke` generates up to two
+problems/model with a cap of 256 tokens; incomplete answers/thinking are expected at that cap.
+Use a separate output folder for the full run. Repeating the full command resumes missing rows.
+Changed prompts, budgets, settings or runtime require a new output folder.
+
+`OUT/generation.json` records generation settings, engine, checkpoint revisions, template hash
+and runtime. `OUT/shards/` contains exact generated token IDs, prompt boundaries and per-response
+seeds. `OUT/pack/` is the ready-to-use normalized input, including text, token IDs, metadata and
+flags for hitting the cap, termination and closed thinking. Save these files for later extraction.
+
+To supply different problems, pass `--tasks /path/tasks.jsonl`. Each line needs a unique `uid`
+and a nonempty `prompt`; optional problem metadata is retained. The default task list is
+`data/tsp_generation/tasks_100.jsonl`. These new generations are separate from the frozen TSP
+baselines used by STOP reproduction.
 
 ## STOP injection
 
@@ -216,19 +256,20 @@ Everything specific to the current experiments is inside this repository:
 | Location | Included contents |
 | --- | --- |
 | `code/dev/` | Required source modules, including subprocess entrypoints, plus CPU tests |
-| `scripts/` | Three executable shell entrypoints |
+| `scripts/` | Four executable shell entrypoints |
 | `data/primitives/` | Updated schema task/response metadata and exact token sequences |
 | `data/vstop/core/` | Original identify tokens/assignments and primitive names |
 | `data/vstop/reference/` | Capture frame, head selection, scaling and fingerprints |
 | `data/vstop/supplied/` | Supplied four-direction file and accepted comparison report |
 | `data/vstop/tsp/` | Six frozen STOP-transfer prompts, 18 baselines and the chat template |
+| `data/tsp_generation/` | Selected 100 TSP prompts and the Phi generation template |
 | `configs/vstop.json` | STOP experiment protocol |
 | `pyproject.toml`, `uv.lock`, `.python-version` | Installable package and locked environment |
 | `INPUT_FORMAT.md`, `VALIDATION.md`, `MANIFEST.json` | Input contract, checks and hashes |
 
-The frozen STOP-transfer TSP data is distinct from the future dataset for primitive extraction.
-That future dataset is not yet available and is not bundled. Its raw-format importer must be added
-once a sample is provided; extraction and joint merging already accept the normalized format.
+The frozen STOP-transfer TSP data is distinct from new responses for primitive extraction.
+New TSP responses are not bundled: generate them with the provided script, or import external
+responses once their format is known. Extraction and joint merging accept the normalized format.
 External requirements are GPU/CUDA, `uv`/Git, Azure CLI/TRAPI authorization for annotation, and
 downloadable Python packages/model weights. No other project checkout, reference-code directory,
 private dataset path, model weights or credentials need to be copied from the original workspace.

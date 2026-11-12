@@ -5,6 +5,11 @@ The extraction runner accepts `--input <pack>`. A pack is a directory containing
 Future raw TSP responses need an importer once their actual format is available. This document
 specifies the importer's output, not an assumed format for the future raw files.
 
+The standalone `scripts/generate_tsp_responses.sh` can also generate a new dataset directly from
+the bundled 100 problems (or a supplied JSONL with `uid` and `prompt`). Its `OUT/pack/` satisfies
+this contract with exact generated token IDs; no importer is needed for that route. Generation
+settings and runtime are saved in `OUT/generation.json` and in the normalized pack manifest.
+
 ## Sequence table
 
 Use `dev.schema_llm.explore.combined_primitives.SEQUENCE_SCHEMA` for `sequences.parquet`.

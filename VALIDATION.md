@@ -10,6 +10,14 @@ Checks run on the standalone folder, without another checkout on its import path
   The new regression checks four-arm installation without random, byte preservation and malformed-vector rejection.
   This includes the real STOP population test and incremental joint merging. The skipped test
   requires an old results CSV absent from this release.
+- After adding TSP generation: 49 passed, one skipped, one deselected. The previously verified
+  real STOP population test was deselected on this rerun. Three new CPU tests use a generation
+  stand-in to check exact ID/boundary packing, sampling parameters, templates, seeds, cap/closure
+  flags, complete/partial resume, and rejection of changed settings or damaged sequences.
+- `generate_tsp_responses.sh --check-only` passes on all 100 bundled tasks (200 planned responses),
+  without weights, GPU or API calls. The task file is byte-identical to the previously selected
+  100-problem sample. All generator module dependencies and its chat template are bundled.
+  Both real pinned tokenizers passed synthetic-response packing/boundary checks without weights.
 - Validated every saved sequence against its pinned tokenizer: 813 Phi and 813 Qwen primitive
   sequences, plus 216 original Phi identify sequences. All 18 frozen TSP prompt lengths and
   reasoning boundaries passed with the packed chat template.
@@ -34,7 +42,7 @@ Checks run on the standalone folder, without another checkout on its import path
   release file, including hidden environment files, data and executable scripts. No individual file
   reaches 100 MiB. Only the isolated temporary copy was initialized/staged; no remote was created.
 
-Not run here: GPU forwards, new injected generations, full vector regeneration/reference gates,
+Not run here: GPU TSP response generation, GPU forwards, new injected generations, full vector regeneration/reference gates,
 live primitive annotation, or neural embedding. Run both documented `--smoke` commands on the
 compute host before full jobs. Smoke tests cover captures/cache parity, not the full annotation
 or intervention pipeline. No model weights, credentials, generated latents or experiment outputs
