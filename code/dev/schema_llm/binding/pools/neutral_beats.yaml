@@ -1,0 +1,55 @@
+# Role-independent opening beats for binding-dynamics v3, segment 1 only.
+#
+# WHY THIS FILE EXISTS. v1 told the generator that segment 1 must be "uninformative" and left the
+# content to it. The generator complied lexically and then staged everyone by role anyway: the
+# patron ARRIVED from outside ("arrived", "rain", "beneath"), the producer was already out of sight
+# ("partition", "somewhere beyond", "back"), the front agent STOOD at a post. No banned word
+# appeared and no single reader could name a part -- but across 300 items a bag-of-words classifier
+# recovered role from segment 1 at .730 against a .255 majority, and bystanders at .977.
+#
+# So the beat is no longer left to the generator: each person is ASSIGNED one of these at random,
+# independent of their role, and the prompt requires it to be used. Orthogonality then holds by
+# construction and is checkable, instead of depending on how the model reads the word
+# "uninformative".
+#
+# RULES EVERY ENTRY MUST SATISFY -- asserted in tests/test_binding_dynamics.py:
+#   * performable by ANY person in ANY of our schemas, standing still, needing no prop from the
+#     script and no interaction with another person;
+#   * implies no arrival, no departure, no serving, no waiting-to-be-served, no authority, no
+#     being-behind-anything, and no position in the room;
+#   * contains no schema prop, no role noun and no forbidden lexeme;
+#   * self-contained in one short clause, so it can be dropped into any sentence position.
+#
+# Being visibly a little mundane is the point. These exist to be uninformative.
+
+beats:
+  - adjusted a cuff
+  - checked the time
+  - rubbed a smudge from one thumb
+  - shifted a bag from one shoulder to the other
+  - glanced up at a notice on the wall
+  - straightened a sleeve
+  - flexed stiff fingers once
+  - brushed lint from a collar
+  - tucked a stray strand of hair back
+  - rolled one shoulder slowly
+  - tapped a foot once and stopped
+  - breathed on cold hands
+  - wiped condensation from the glass with a knuckle
+  - counted something silently, lips barely moving
+  - tightened a lace
+  - folded and unfolded a scrap of paper
+  - turned a small smooth object over in one hand
+  - scratched an eyebrow
+  - tilted their head at a sound overhead
+  - watched dust turn in a shaft of light
+  - cleared their throat quietly
+  - shifted weight from one foot to the other
+  - pressed a thumb against a stiff knuckle
+  - studied the backs of their own hands
+  - blinked against the brightness
+  - smoothed a crease flat
+  - rubbed at a spot on one wrist
+  - let out a slow breath
+  - turned a ring around one finger
+  - pushed a sleeve back from a wrist

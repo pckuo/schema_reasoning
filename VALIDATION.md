@@ -56,3 +56,51 @@ were compared to the retained reference; the user accepted the differences recor
 retaining the reference median L16 state norm for dose scaling. It validates shapes, finite
 values, unit norms and release checksums; vector recapture/regeneration is skipped.
 No GPU experiments were run for this update. Cross-device generated text may differ.
+
+## D1/D2 generation addition — 2026-11-13
+
+- Copied 23 generator/helper/validation Python modules and five YAML assets byte-for-byte from
+  the active repository, including package initializers. Added offline regression cases for
+  both two-wave design grids and the original scripts' generation-only stage.
+- In a separate copy under `/private/tmp`, all CPU tests excluding the previously verified
+  real-data STOP population case passed: **51 passed, one skipped, one deselected**. No parent
+  checkout was on `PYTHONPATH`; the existing locked Python 3.12 validation environment was used.
+- The new tests build both designs' complete wave-3 and wave-4 grids, verify 150 planned items
+  per wave, distinct family IDs, continued name pools and wave-4 segment counts, and render the
+  seed, continuation, ambiguous-prefix and resolving-branch prompts without any API calls.
+- The generator CLI imports and displays help from the standalone package. The added test
+  passes Ruff. The original shell scripts pass `bash -n`; their `STEP=gen` branches invoke
+  the existing generator with the API extra.
+- A fresh offline `uv sync` attempt could not complete because this host's cache lacks the locked
+  PyArrow wheel. Fresh environment installation was not revalidated in this update; the lockfile
+  and dependency declarations are unchanged from the previously validated release.
+- The release manifest and `.tar.gz` were refreshed; all archived file hashes and executable bits
+  were checked, and existing frozen data/source files were preserved.
+
+Live TRAPI generation and audits were not run for this addition. Run the README's D1 and D2
+API smoke commands on the collaborator host. New responses from Phi/Qwen and normalization for
+primitive extraction are separate work; `STEP=gen` produces passages, prompts and gold only.
+
+### Original generation scripts restored — 2026-11-13
+
+The handoff now copies `run_binding_dynamics_d1.sh`, `run_binding_dynamics_d2.sh` and
+`run_binding_dyn_wave2.sh` byte-for-byte from `scripts/schema_llm/`, preserving that path.
+The new translation wrapper has been removed. README commands use the original stage scripts
+with `STEP=gen`, `WAVE=3/4` and `NAME=binding_dyn_d{1,2}_v3` / `_v3w2`. The original Python
+code resolves second-wave resume paths to the same design's first-wave folder automatically.
+The second-wave orchestrator is included for historical inspection; its full downstream stages
+call other original-checkout scripts outside this generation handoff.
+
+**Six targeted offline tests passed**, covering both full two-wave grids/prompt rendering and
+the D1/D2 original
+shell scripts with both WAVE values. Shell tests record the original scripts' `uv` arguments
+using a stand-in, check design/wave/output/model values and ensure `STEP=gen` invokes only
+one generation command. No live API calls or installations are made by those checks.
+Original shell bytes, shell syntax, Ruff, final release hashes and the rebuilt archive are checked.
+Frozen data and generator algorithm source remain unchanged.
+
+### Shared documentation cleanup — 2026-11-13
+
+Removed the confound-audit plan Markdown document from the shared package and its README
+link. Refreshed the file manifest and archive, verifying that the document is absent and all
+remaining release checksums match.

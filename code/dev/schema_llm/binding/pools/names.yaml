@@ -1,0 +1,70 @@
+# Given-name pool for the binding experiments.
+#
+# NOT the shared `core/schemas/_shared/names.yaml`. That pool contains names that are also common
+# nouns or schema-adjacent words -- Sage / Rosa / Basil in a restaurant, Skyler / Phoenix / River /
+# Ocean / Lake at an airport, plus Wren, Robin, Iris, Parker, Rowan, Sakura. With headcounts up to
+# 14 and per-family uniqueness, drawing one of those stops being unlikely, and a name that reads as
+# scenery corrupts exactly the headcount measure 1A exists to take.
+#
+# Every name here is vetted against, and enforced by `tests/test_binding_pools.py`:
+#   - no collision with either schema's forbidden_labels / role forbidden / role accept words
+#   - not a common English noun, occupation, plant, place, or nature word (HAZARD list in the test)
+#   - a single token (no space, hyphen or apostrophe), so anchor matching stays unambiguous
+#   - unique across all three gender buckets
+#
+# Role-bearers are ALWAYS named, never described ("a person with a backpack" is a materially harder
+# referent to bind than "Maya", and that difficulty is uncontrolled). Gender tags exist only to keep
+# co-present people pronoun-distinguishable.
+
+male:
+  [Aaron, Adrian, Ahmed, Alaric, Alastair, Alexei, Alfonso, Amir,
+   Anders, Andre, Anton, Arjun, Armand, Bastian, Bastien, Benedikt,
+   Bertrand, Bjorn, Boris, Caleb, Callum, Caspian, Cormac, Cyrus,
+   Damien, Dashiell, Declan, Demetri, Desmond, Diego, Dmitri, Dominik,
+   Eamon, Edmund, Elias, Emeka, Emeric, Emilio, Enzo, Esteban,
+   Ethan, Evander, Ezra, Fabian, Faisal, Felipe, Ferdinand, Fernando,
+   Florian, Gareth, Gerhardt, Gianluca, Giulio, Gustav, Gustavo, Haruki,
+   Hassan, Hendrik, Horatio, Ibrahim, Idris, Ignacio, Ignatius, Isaac,
+   Isidore, Ismael, Jarrah, Joaquin, Jonas, Jorgen, Julian, Kaito,
+   Karim, Kenji, Kieran, Konstantin, Kristoffer, Kwame, Lachlan, Lars,
+   Leandro, Leon, Leopold, Lorcan, Lucian, Ludvig, Magnus, Mahmoud,
+   Malachy, Malik, Marcelo, Marius, Mateo, Mathias, Matthias, Maximilian,
+   Mikael, Milos, Mohsen, Nabil, Nathanael, Nikhil, Nikolai, Octavio,
+   Oleg, Olivier, Omar, Oskar, Osvaldo, Padraig, Pascal, Pavel,
+   Percival, Piotr, Quentin, Quillon, Radoslav, Rafael, Rashid, Rasmus,
+   Ravi, Reuben, Roderick, Rohan, Rufus, Salim, Sanjay, Seamus,
+   Sebastian, Sebastien, Silas, Soren, Stefan, Stellan, Sylvain, Takeshi,
+   Tariq, Thaddeus, Theo, Thiago, Tobias, Tomasz, Torquil, Ulrich,
+   Umberto, Valentin, Vasily, Vikram, Viktor, Vincenzo, Wendell, Wojciech,
+   Wolfgang, Xavier, Yannick, Yosef, Yusuf, Zoltan]
+
+female:
+  [Adaeze, Adriana, Agnes, Ainsley, Aisha, Alejandra, Alina, Amalija,
+   Aminata, Annika, Anouk, Anya, Astrid, Aurelie, Beatrix, Beatriz,
+   Bianca, Birgit, Bronwen, Camila, Carmen, Catalina, Cecilia, Clara,
+   Clemence, Colette, Cordelia, Cosima, Dagmar, Dalia, Delphine, Dilara,
+   Eilidh, Elif, Elke, Eloise, Elspeth, Esperanza, Esther, Eulalia,
+   Fatima, Fatou, Fenella, Francesca, Freya, Gabriela, Genevieve, Giulietta,
+   Gretchen, Gwendolyn, Halina, Helga, Henrietta, Hildegard, Ilaria, Ilse,
+   Imani, Ines, Ingrid, Iona, Isolde, Jamila, Johanna, Josefina,
+   Juliana, Kalinda, Karina, Katarzyna, Katya, Keiko, Kseniya, Larissa,
+   Leonor, Leonora, Liesel, Lucinda, Ludmila, Luisa, Maeve, Magdalena,
+   Mairead, Manon, Marisol, Marta, Mathilde, Meera, Melina, Mirabel,
+   Mireille, Nadezhda, Nadia, Naomi, Ngozi, Niamh, Nicolette, Nkechi,
+   Noor, Nuala, Odile, Oksana, Orla, Ottilie, Paloma, Perpetua,
+   Petra, Philippa, Priya, Rania, Renata, Roisin, Rosalie, Rosalind,
+   Saanvi, Sabine, Sanna, Saoirse, Seraphina, Sinead, Solveig, Sunniva,
+   Tamsin, Tatiana, Thandiwe, Theodora, Ursula, Ursuline, Valentina, Valeska,
+   Vasilisa, Verena, Wanjiru, Wilhelmina, Winifred, Xenia, Xiomara, Yasmina,
+   Yolanda, Ysabel, Yuliana, Zainab, Zofia, Zorana, Zuzanna]
+
+neutral:
+  [Alex, Andi, Ari, Ashby, Ashwin, Aubrey, Bertie, Bevan,
+   Blair, Casey, Cass, Cassidy, Corin, Darcy, Devon, Eilan,
+   Ellery, Emery, Emlyn, Esme, Evren, Finley, Frankie, Gael,
+   Gwyn, Hadley, Hayden, Ilya, Isa, Jaden, Jules, Kai,
+   Kendall, Kerry, Kirran, Lennox, Lior, Marlon, Micah, Nico,
+   Niko, Noa, Ollie, Perrin, Quinn, Remy, Ren, Riley,
+   Rory, Sacha, Shai, Tal, Tam, Tamsyn, Tatum, Toni,
+   Vesa, Wynne, Yael, Zia, Zuri]
+

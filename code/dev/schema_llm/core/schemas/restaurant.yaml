@@ -1,0 +1,160 @@
+# Restaurant schema spec (static half of generation; see main/plans/SCHEMA_PROBING_PLAN.md A4.2).
+# `forbidden` lists are NOUNS only (verbs like cook/serve/order/dine are allowed).
+# Person-role nouns are forbidden always; object/place-role nouns are forbidden only
+# when the per-item prop_naming control == "abstract".
+schema: restaurant
+
+forbidden_labels: [restaurant, restaurants, eatery, eateries, bistro, bistros,
+                   diner, diners, cafe, cafes, "café", brasserie]
+
+# Sibling scripts at the same basic level (judge-only, schema-granularity grading, A3.1): a
+# too-general label ("going out", "service encounter") would fit these equally well.
+siblings: ["bar or pub visit", "hotel stay", "grocery shopping trip",
+          "hair salon or barber visit", "doctor's office visit"]
+
+# Judge-only accept list (A3.1): activity-level synonyms of the script that count as a correct
+# "match" (the forbidden nouns above are already accepted; only cross-script categories like
+# "service" / "going out" are superordinate).
+schema_accept: [dining, "dining out", "eating out", "a meal out", "going out to eat",
+                "restaurant visit", "sit-down meal"]
+
+# Nouns that distinguish this script from `siblings` above. `table`/`bill`/`check`/`tab` are
+# licensed props but NOT diagnostic -- a bar, hotel and salon all seat you and present a bill.
+# Choosing from a list of options and being brought prepared food is what makes it dining.
+diagnostic_props: [menu, menus, dish, dishes, entree, entrees, meal, meals, food, foods]
+
+scenes: [arrive, seated, order, eat, pay, leave]
+branches: {}   # restaurant is linear; airport will add optional/loop scenes later
+
+roles:
+  PATRON:
+    kind: person
+    tier: core
+    max_count: 2
+    desc: "the visitor who is served: arrives, is seated, decides what to have, eats, settles up, and leaves"
+    forbidden: [customer, customers, diner, diners, patron, patrons, guest, guests]
+  FRONT_AGENT:
+    kind: person
+    tier: core
+    adult_only: true
+    desc: "greets the visitor at the door and shows them to where they will sit"
+    forbidden: [host, hosts, hostess, hostesses, "maitre d", maitre]
+    accept: [greeter, "front of house"]
+  SERVICE_AGENT:
+    kind: person
+    tier: periph
+    adult_only: true
+    desc: "attends the visitor: brings the list of options, takes what they ask for, brings out what was prepared, and later brings what is owed"
+    forbidden: [waiter, waiters, waitress, waitresses, server, servers]
+    accept: [waitstaff, "wait staff", "serving staff"]
+  PRODUCER:
+    kind: person
+    tier: periph
+    adult_only: true
+    desc: "works out of sight in back, preparing what the visitor will eat"
+    forbidden: [cook, cooks, chef, chefs]
+    accept: ["kitchen staff", "line cook"]
+  CONSUMABLE:
+    kind: object
+    tier: periph
+    desc: "what the visitor eats"
+    forbidden: [meal, meals, dish, dishes, food, foods, entree, entrees]
+  KEY_PROP:
+    kind: object
+    tier: core
+    desc: "the list of options the visitor looks at when deciding"
+    forbidden: [menu, menus]
+  PAYMENT_PROP:
+    kind: object
+    tier: periph
+    desc: "the amount owed, presented near the end"
+    forbidden: [bill, bills, check, checks, tab, tabs]
+  LOCUS:
+    kind: place
+    tier: core
+    desc: "the spot where the visitor sits"
+    forbidden: [table, tables]
+
+# How object/place roles are rendered, per prop_naming control (A4.1). `named` variants use
+# only that object's own noun (never another role's), so `mixed` mode stays leak-safe.
+props:
+  KEY_PROP:
+    named: ["the menu", "a menu", "the menu card", "a large menu", "a laminated menu"]
+    abstract: ["a card listing the options", "a printed list of choices", "a laminated card of the day's offerings",
+               "a folded card of options", "a board with the choices chalked on it"]
+  PAYMENT_PROP:
+    named: ["the bill", "the check", "a paper bill", "the printed check", "the itemized bill"]
+    abstract: ["a slip with the total", "the amount owed", "a small folded slip", "a printed total",
+               "the sum written on a slip"]
+  CONSUMABLE:
+    named: ["the meal", "the dish", "the food", "a warm dish", "a plate of food"]
+    abstract: ["the plate", "what they had asked for", "a steaming plate", "what they'd chosen",
+               "the plate they'd ordered", "a laden plate"]
+  LOCUS:
+    named: ["a table", "a table by the window", "the table", "a corner table", "a small table"]
+    abstract: ["a spot in the corner", "where they would sit", "a seat by the window", "a quiet spot",
+               "a place near the back", "their seat"]
+
+# Detail-level control adjuncts (A4.1): optional flourishes for richer prompts.
+adjuncts:
+  generic: ["it was a slow evening", "rain tapped the windows", "the lights were low", "soft music played",
+            "the room was nearly full", "a draft slipped in from the street", "somewhere a kettle hissed"]
+  arrive: ["shaking off the cold", "a little later than planned", "brushing rain from a coat",
+           "glancing around the room", "just before closing"]
+  seated: ["by the window", "in a quiet corner", "near the back", "under a low lamp", "away from the door"]
+  order: ["after a moment's thought", "without much deliberation", "after a few questions",
+          "pointing to one line", "with an easy nod"]
+  eat: ["savoring it", "without hurry", "between glances at the street", "talking quietly",
+        "pausing now and then"]
+  pay: ["leaving a little extra", "counting out exact change", "with a quiet word of thanks",
+        "fumbling for a card", "rounding it up"]
+  leave: ["into the evening", "back into the rain", "with a nod to the door", "pulling on a coat",
+          "out into the cold"]
+
+# Action exemplars (role -> scene -> clauses). Hints for the LLM, and the literal
+# text for the deterministic template fallback. {ROLE} slots are filled at runtime.
+actions:
+  PATRON:
+    arrive: ["{PATRON} walked in", "{PATRON} came in out of the cold", "{PATRON} stepped inside",
+             "{PATRON} arrived", "{PATRON} pushed through the door"]
+    order: ["{PATRON} asked for {CONSUMABLE}", "{PATRON} decided what to have", "{PATRON} chose {CONSUMABLE}",
+            "{PATRON} settled on something", "{PATRON} pointed to what they wanted"]
+    eat: ["{PATRON} ate {CONSUMABLE}", "{PATRON} ate slowly", "{PATRON} worked through {CONSUMABLE}",
+          "{PATRON} ate without hurry"]
+    pay: ["{PATRON} paid", "{PATRON} settled up", "{PATRON} counted out the amount",
+          "{PATRON} left what was owed"]
+    leave: ["{PATRON} headed out", "{PATRON} gathered their things and left", "{PATRON} stepped back outside",
+            "{PATRON} left"]
+  FRONT_AGENT:
+    seated: ["{FRONT_AGENT} showed {PATRON} to {LOCUS}", "{FRONT_AGENT} led {PATRON} to {LOCUS}",
+             "{FRONT_AGENT} greeted {PATRON} and showed them to {LOCUS}",
+             "{FRONT_AGENT} walked {PATRON} over to {LOCUS}"]
+  SERVICE_AGENT:
+    order: ["{SERVICE_AGENT} brought {KEY_PROP} and took the request", "{SERVICE_AGENT} noted what {PATRON} wanted",
+            "{SERVICE_AGENT} set down {KEY_PROP}", "{SERVICE_AGENT} wrote down the request"]
+    eat: ["{SERVICE_AGENT} brought out {CONSUMABLE}", "{SERVICE_AGENT} carried {CONSUMABLE} over",
+          "{SERVICE_AGENT} set down {CONSUMABLE}"]
+    pay: ["{SERVICE_AGENT} left {PAYMENT_PROP}", "{SERVICE_AGENT} dropped off {PAYMENT_PROP}",
+          "{SERVICE_AGENT} returned with {PAYMENT_PROP}"]
+  PRODUCER:
+    eat: ["{PRODUCER} had prepared {CONSUMABLE} in back", "{PRODUCER} plated {CONSUMABLE} out of sight",
+          "{PRODUCER} put together {CONSUMABLE} in the back"]
+
+# Judge-only glosses (never shown to the probed model; see main/plans/SCHEMA_PROBING_PLAN.md A3.1).
+# scene_gloss = the overall event at each scene -> predict_next_event gold + spot_error descriptions.
+scene_gloss:
+  arrive: "the visitor comes in"
+  seated: "the greeter shows the visitor to a place to sit down"
+  order: "the visitor looks over the list of options and asks for something to eat"
+  eat: "what was asked for is brought out and the visitor eats"
+  pay: "the amount owed is brought over and the visitor settles up"
+  leave: "the visitor gets up and leaves"
+
+# patron_gloss = what the protagonist (the visitor) should do next -> predict_correct_action gold;
+# defined for the scenes in which the protagonist themselves acts (not the passive `seated`).
+patron_gloss:
+  arrive: "come inside"
+  order: "look over the options and ask for something to eat"
+  eat: "eat what was brought"
+  pay: "settle up and pay what is owed"
+  leave: "get up and leave"

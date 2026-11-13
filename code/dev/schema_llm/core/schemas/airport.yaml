@@ -1,0 +1,210 @@
+# Airport schema spec (static half of generation; see main/plans/SCHEMA_PROBING_PLAN.md A4.2).
+# `forbidden` lists are NOUNS only (verbs like board/screen/fly/check are allowed).
+# Person-role nouns are forbidden always; object/place-role nouns are forbidden only
+# when the per-item prop_naming control == "abstract".
+#
+# Deliberately DIFFERENT structure from restaurant (8 scenes vs 6, its own role set) --
+# that structural difference is signal (SCHEMA_PROBING_PLAN.md H4), not a confound. Only the
+# core anchors PATRON / FRONT_AGENT / KEY_PROP / LOCUS are shared across the two schemas.
+# Note: airport has NO PAYMENT_PROP (the fare is bought before arrival, so it never appears
+# on-script) and adds a GATEKEEPER (security) with no restaurant counterpart.
+schema: airport
+
+forbidden_labels: [airport, airports, terminal, terminals, aerodrome, aerodromes]
+
+# Sibling scripts at the same basic level (judge-only, schema-granularity grading, A3.1): a
+# too-general label ("travel", "a trip", "transportation") would fit these equally well.
+siblings: ["train trip", "ferry crossing", "bus journey", "hotel check-in", "subway ride"]
+
+# Judge-only accept list (A3.1): activity-level synonyms of the script that count as a correct
+# "match" (the forbidden nouns above are already accepted; only cross-script categories like
+# "travel" / "transportation" / "a trip" are superordinate).
+schema_accept: ["air travel", "air journey", flying, "a flight", "catching a flight",
+                "boarding a flight", "plane trip"]
+
+# Nouns that distinguish this script from `siblings` above. `seat`/`ticket`/`gate` are licensed
+# props but NOT diagnostic -- a train, ferry, bus and subway all have all three. The vehicle and
+# the boarding pass are what make the script air travel. Generation requires >=1 of these.
+diagnostic_props: [flight, flights, "boarding pass", "boarding passes", plane, planes,
+                   airplane, airplanes, aircraft, jet, jets]
+
+# Native order (A1). Linear baseline; optional branches (bag_drop / extra_screening /
+# gate_change) are deferred until the sampler consumes `branches` -- see SCHEMA_PROBING_PLAN.md.
+scenes: [arrive, check_in, security, walk_gate, board, fly, deplane, baggage]
+branches: {}
+
+roles:
+  PATRON:
+    kind: person
+    tier: core
+    max_count: 2
+    desc: "the one making the trip: arrives, checks in, is screened, walks to where they wait, gets on, rides, gets off at the far end, and collects what they brought"
+    forbidden: [passenger, passengers, traveler, travelers, traveller, travellers,
+                flyer, flyers, flier, fliers]
+    # parity with restaurant PATRON, whose `forbidden` already supplies customer/guest: the
+    # served party is a customer/guest in either script, so the judge must credit both here too.
+    accept: [customer, customers, guest, guests]
+  FRONT_AGENT:
+    kind: person
+    tier: core
+    adult_only: true
+    desc: "at the front counter: takes the person's details, tags what they are sending ahead, and hands over the printed slip that later lets them get on"
+    forbidden: [agent, agents, clerk, clerks]
+    accept: ["check-in agent", "check-in staff", "check-in", "ticket agent", "desk agent",
+             "check-in clerk", "ticket clerk", "counter staff"]
+    # bare "agent" heads GATEKEEPER's "security agent" and SERVICE_AGENT's "gate agent" too, so
+    # crediting it here made those three roles indistinguishable to the judge (it inflated
+    # FRONT_AGENT and starved SERVICE_AGENT). Still forbidden in the prose; just not an answer.
+    accept_exclude: [agent, agents]
+  GATEKEEPER:
+    kind: person
+    tier: periph
+    adult_only: true
+    desc: "stands at the checkpoint partway through: inspects the person and their belongings before letting them go on"
+    forbidden: [officer, officers, guard, guards, screener, screeners, tsa, marshal, marshals]
+    accept: ["security officer", "security personnel", "security", "security agent", "security guard"]
+  SERVICE_AGENT:
+    kind: person
+    tier: periph
+    adult_only: true
+    # v1 desc ("at the counter by the waiting area: checks the printed slip and lets the person
+    # through to get on") shared its OBJECT with FRONT_AGENT (the printed slip) and its VERB with
+    # GATEKEEPER (letting through), leaving it no signature of its own. Measured consequence:
+    # 0.235 accuracy, and 0.293 even when the schema IS recognised, with the top wrong answers
+    # being verbatim FRONT_AGENT vocabulary ("check-in staff" x62, "check-in clerk" x53) and
+    # GATEKEEPER vocabulary ("security officer" x41). Restaurant's roles avoid this by having
+    # disjoint verb signatures (greets/seats | brings and takes | prepares out of sight).
+    # This desc claims one action no sibling performs: calling groups forward at the doorway.
+    desc: "waits by the doorway to the ride itself: announces the order people will get on in, calls each group forward by turn, and waves them down the ramp"
+    forbidden: [attendant, attendants, steward, stewards, stewardess, stewardesses]
+    accept: ["gate agent", "boarding agent", "gate attendant", "gate staff", "boarding staff"]
+  PRODUCER:
+    kind: person
+    tier: periph
+    adult_only: true
+    desc: "up front and out of sight, works the controls that carry everyone to the far end"
+    forbidden: [pilot, pilots, captain, captains, aviator, aviators, airman, airmen]
+  CONSUMABLE:
+    kind: object
+    tier: periph
+    desc: "the ride the person takes to the far end"
+    # `plane`/`aircraft` belong here: under `abstract` they must be suppressed like any other
+    # diagnostic noun for this role, and under `named` they are the single strongest cue that
+    # the script is air travel. Omitting them leaked in one mode and starved the other.
+    forbidden: [flight, flights, seat, seats, plane, planes, airplane, airplanes,
+                aircraft, jet, jets]
+  KEY_PROP:
+    kind: object
+    tier: core
+    desc: "the printed slip that authorizes the person to get on"
+    forbidden: ["boarding pass", "boarding passes", boardingpass, ticket, tickets]
+  LOCUS:
+    kind: place
+    tier: core
+    desc: "the spot where the person waits and gets on"
+    forbidden: [gate, gates]
+
+# How object/place roles are rendered, per prop_naming control (A4.1). `named` variants use
+# only that object's own noun (never another role's), so `mixed` mode stays leak-safe; every
+# `abstract` variant avoids ALL forbidden nouns.
+props:
+  KEY_PROP:
+    named: ["the boarding pass", "a boarding pass", "the pass", "a printed boarding pass", "the paper pass"]
+    abstract: ["a slip that cleared them to get on", "the printed slip with the barcode",
+               "the small printed card that let them on", "a folded slip stamped for the trip",
+               "the scannable slip"]
+  CONSUMABLE:
+    named: ["the flight", "a flight", "the seat", "a window seat", "the assigned seat"]
+    abstract: ["the long ride ahead", "the trip across", "the crossing",
+               "the hours in the air", "the journey to the far city"]
+  LOCUS:
+    named: ["the gate", "a gate", "the departure gate", "the assigned gate", "gate 14"]
+    abstract: ["the waiting area", "the departure point", "the spot where the ramp began",
+               "the place they would leave from", "the waiting lounge by the window"]
+
+# Detail-level control adjuncts (A4.1): optional flourishes for richer prompts.
+adjuncts:
+  generic: ["the hall was crowded", "a departures board clattered overhead", "rain streaked the tall windows",
+            "an announcement echoed somewhere", "the floor gleamed under bright lights",
+            "wheeled cases rumbled past", "a cold draft came from the doors"]
+  arrive: ["with time to spare", "later than planned", "wheeling a heavy case",
+           "checking the time again", "still half asleep"]
+  check_in: ["after a short queue", "fumbling for the booking", "with a bag to send ahead",
+             "answering the usual questions", "shifting from foot to foot"]
+  security: ["shoes off and pockets emptied", "holding up the line", "with a patient sigh",
+             "raising both arms", "eyeing the tray anxiously"]
+  walk_gate: ["past rows of shops", "checking the number twice", "against the moving crowd",
+              "with plenty of time", "following the overhead signs"]
+  board: ["when the row was called", "near the back of the line", "with a quick nod",
+          "clutching the slip", "shuffling forward slowly"]
+  fly: ["above the clouds", "as the ground fell away", "through a patch of turbulence",
+        "watching the window", "with the hum all around"]
+  deplane: ["into the jet bridge", "stiff after the ride", "following the crowd out",
+            "blinking in the new light", "with a stretch"]
+  baggage: ["by the slow carousel", "scanning for a familiar case", "among the waiting crowd",
+            "with a yawn", "as bags thudded onto the belt"]
+
+# Action exemplars (role -> scene -> clauses). Hints for the LLM, and the literal
+# text for the deterministic template fallback. {ROLE} slots are filled at runtime.
+# Every scene has >=1 person-role action (required by the template backend).
+actions:
+  PATRON:
+    arrive: ["{PATRON} arrived early", "{PATRON} hurried in through the doors",
+             "{PATRON} came in wheeling a bag", "{PATRON} walked in", "{PATRON} stepped inside"]
+    check_in: ["{PATRON} gave their details at the counter", "{PATRON} checked in",
+               "{PATRON} handed over a bag to be tagged", "{PATRON} confirmed the booking",
+               "{PATRON} lined up at the counter"]
+    security: ["{PATRON} emptied their pockets into a tray", "{PATRON} stepped through the scanner",
+               "{PATRON} was waved through the checkpoint", "{PATRON} put their bag on the belt",
+               "{PATRON} raised their arms to be checked"]
+    walk_gate: ["{PATRON} walked down to {LOCUS}", "{PATRON} made their way to {LOCUS}",
+                "{PATRON} found {LOCUS} and waited", "{PATRON} headed for {LOCUS}"]
+    board: ["{PATRON} handed over {KEY_PROP} and stepped aboard", "{PATRON} showed {KEY_PROP} and went down the ramp",
+            "{PATRON} boarded", "{PATRON} found their place and sat down"]
+    fly: ["{PATRON} settled in as {CONSUMABLE} began", "{PATRON} looked out over the clouds",
+          "{PATRON} dozed through {CONSUMABLE}", "{PATRON} rode it out"]
+    deplane: ["{PATRON} stepped off at the far end", "{PATRON} got off and followed the crowd",
+              "{PATRON} came down the ramp into a new city", "{PATRON} disembarked"]
+    baggage: ["{PATRON} waited by the carousel for their bag", "{PATRON} collected their bag and left",
+              "{PATRON} pulled a case off the belt and headed out", "{PATRON} grabbed their things and walked out"]
+  FRONT_AGENT:
+    check_in: ["{FRONT_AGENT} took {PATRON}'s details and handed over {KEY_PROP}",
+               "{FRONT_AGENT} tagged {PATRON}'s bag and gave them {KEY_PROP}",
+               "{FRONT_AGENT} checked {PATRON} in and printed {KEY_PROP}",
+               "{FRONT_AGENT} weighed the bag and passed {PATRON} {KEY_PROP}"]
+  GATEKEEPER:
+    security: ["{GATEKEEPER} waved {PATRON} through the scanner",
+               "{GATEKEEPER} checked {PATRON}'s things and let them by",
+               "{GATEKEEPER} inspected {PATRON} at the checkpoint",
+               "{GATEKEEPER} signaled {PATRON} to step forward"]
+  SERVICE_AGENT:
+    board: ["{SERVICE_AGENT} scanned {KEY_PROP} and waved {PATRON} through",
+            "{SERVICE_AGENT} checked {KEY_PROP} and sent {PATRON} down the ramp",
+            "{SERVICE_AGENT} took {KEY_PROP} from {PATRON} and let them aboard",
+            "{SERVICE_AGENT} called {PATRON} forward and scanned {KEY_PROP}"]
+  PRODUCER:
+    fly: ["{PRODUCER} guided {CONSUMABLE} into the air", "{PRODUCER} took the controls for {CONSUMABLE}",
+          "{PRODUCER} eased {CONSUMABLE} off the ground", "{PRODUCER} steered them through {CONSUMABLE}"]
+
+# Judge-only glosses (never shown to the probed model; see main/plans/SCHEMA_PROBING_PLAN.md A3.1).
+# scene_gloss = the overall event at each scene -> predict_next_event gold + spot_error descriptions.
+scene_gloss:
+  arrive: "the traveler arrives at the building"
+  check_in: "the traveler gives their details at the front counter and is handed the slip that lets them get on"
+  security: "the traveler is inspected at the checkpoint before going on"
+  walk_gate: "the traveler makes their way to the spot where they will wait and get on"
+  board: "the traveler's slip is checked and they get on"
+  fly: "the ride to the far end takes place"
+  deplane: "the traveler gets off at the far end"
+  baggage: "the traveler collects what they brought and heads out"
+
+# patron_gloss = what the protagonist (the traveler) should do next -> predict_correct_action gold.
+patron_gloss:
+  arrive: "arrive and go inside"
+  check_in: "go to the front counter, give their details, and collect the slip that lets them get on"
+  security: "go through the checkpoint screening"
+  walk_gate: "make their way to the spot where they will get on"
+  board: "hand over the slip and get on"
+  fly: "settle in for the ride"
+  deplane: "get off at the far end"
+  baggage: "collect their belongings and head out"
