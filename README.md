@@ -104,123 +104,6 @@ Read `prompt_text` and filter `corpus` to `d1` (300 prompts) or `d2` (297 prompt
 `passage_text` contains the passage alone; `gold`, `family_id`, `design` and `wave` retain
 answer and design metadata. `data/primitives/manifest.json` records counts and provenance.
 
-## Generation code for `20260915-binding_dyn_d{1,2}_v3w2`
-
-This section describes the two generation waves pooled into the frozen source exports
-`20260915-binding_dyn_d1_v3w2` (300 items) and `20260915-binding_dyn_d2_v3w2` (297 items).
-The original shell scripts are copied **unchanged** under `scripts/schema_llm/`:
-
-- `run_binding_dynamics_d1.sh`: original D1 stage runner.
-- `run_binding_dynamics_d2.sh`: original D2 stage runner.
-- `run_binding_dyn_wave2.sh`: original second-wave generation/audit/downstream orchestration,
-  included to inspect the historical workflow.
-
-Use the D1/D2 runners' existing **`STEP=gen`** option for generation only. Their original
-`WAVE` values are preserved:
-
-| Release generation wave | Original shell setting | Implementation | Raw output folder name |
-| --- | --- | --- | --- |
-| v3 wave 1 | `WAVE=3` | `build_wave3()` | `binding_dyn_d1_v3` / `binding_dyn_d2_v3` |
-| v3 wave 2 | `WAVE=4` | `build_wave4()` | `binding_dyn_d1_v3w2` / `binding_dyn_d2_v3w2` |
-
-The values 3/4 are the generator's existing internal revision numbers. The **export** named
-`20260915-binding_dyn_d*_v3w2` pools both raw generation folders; the raw folder
-`binding_dyn_d*_v3w2` contains only the second wave.
-
-### Where to inspect the generation procedure
-
-- `code/dev/schema_llm/binding/dynamics/design.py`: `build_wave3()` constructs release wave 1
-  with balanced identity assignments and neutral opening beats; `build_wave4()` adds the
-  long/pressure D1 arms and late/pairs D2 arms, continuing the first wave's assignment history.
-- `code/dev/schema_llm/binding/dynamics/prose.py`: prompts used to generate seed passages,
-  continuations, ambiguous prefixes and resolving branches.
-- `code/dev/schema_llm/binding/dynamics/run.py`: generation order, pinned shared prefixes,
-  retries, acceptance checks and resumable family checkpoints.
-- `code/dev/schema_llm/binding/dynamics/audit.py` and `verify.py`: per-cut LLM audits and
-  deterministic passage checks. `confound_audit.py` and `verify_v3.py` provide corpus checks.
-- `code/dev/schema_llm/binding/`: shared cast, task, gold, record and API helpers;
-  `binding/pools/`: name/beat/distractor YAML assets;
-  `code/dev/schema_llm/core/schemas/`: airport and restaurant YAML specifications.
-
-
-These are the retained generator implementation and design notes for this dataset family.
-The current source includes later fixes. Historical seeds/settings are not fully recovered
-(the retained `balance.py` notes that the shipped first-wave name-pool seed was not recorded).
-New API generations therefore do not promise byte-identical reproduction of the saved passages;
-`data/primitives/tasks.parquet` remains the authoritative frozen prompt set.
-
-### Run the original scripts with generation only
-
-Install the locked API dependencies and authenticate with Azure CLI as described above:
-
-```bash
-uv sync --locked --extra api
-az login --use-device-code --scope api://trapi/.default
-```
-
-Run from the root containing this README. The explicit `STEP`, `WAVE` and `NAME` settings
-below select the generation stage and the source datasets' original folder names:
-
-```bash
-STEP=gen WAVE=3 NAME=binding_dyn_d1_v3 bash scripts/schema_llm/run_binding_dynamics_d1.sh
-STEP=gen WAVE=4 NAME=binding_dyn_d1_v3w2 bash scripts/schema_llm/run_binding_dynamics_d1.sh
-STEP=gen WAVE=3 NAME=binding_dyn_d2_v3 bash scripts/schema_llm/run_binding_dynamics_d2.sh
-STEP=gen WAVE=4 NAME=binding_dyn_d2_v3w2 bash scripts/schema_llm/run_binding_dynamics_d2.sh
-```
-
-Outputs land under `results/schema_llm/data/<NAME>/`; logs under `results/schema_llm/logs/`.
-The second-wave generator automatically resumes the same design's first-wave assignment history
-from `results/schema_llm/data/binding_dyn_d1_v3/` or `binding_dyn_d2_v3/`. Keep these names and
-generate the full first wave before its second wave. The stage runners default to the four-model
-TRAPI pool in `binding/config.py`. To use one accessible deployment, prefix a command with
-`POOL=0 MODEL=<deployment>`. Other original controls include `WORKERS`, `MAX_CONCURRENCY`,
-`TRIES`, `AUDIT_N` and `REPAIR`.
-
-The copied scripts contain the full historical pipeline and default to `STEP=all`; use the
-explicit `STEP=gen` commands above for this standalone generation handoff. Other stages, and
-the full `run_binding_dyn_wave2.sh`, call collection/capture/export runners from the original
-checkout that are outside this package's generation scope.
-
-For a small API smoke test, invoke the same original Python generation driver directly:
-
-```bash
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.run --design D1 --wave 3 --smoke --out results/schema_llm/data/binding_dyn_d1_v3_smoke
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.run --design D2 --wave 3 --smoke --out results/schema_llm/data/binding_dyn_d2_v3_smoke
-```
-
-Generation and per-cut audits use TRAPI; no GPU or local model weights are needed. Smoke runs
-use the driver's default deployment `gpt-5.6-sol_2026-07-09`; `--model` overrides it.
-Each wave plans 150 items per design. Saved and accepted counts can be lower after retries;
-the frozen D2 export contains 297 saved items across both waves. Re-running an identical command
-resumes family checkpoints in `OUT/families/`; `REPAIR=1` retries families containing rejected
-items. Use a fresh folder when changing settings, and inspect acceptance summaries before
-continuing. A full second wave needs the same design's full first-wave name pool.
-
-Outputs are `OUT/items.jsonl` (passages, casts, design metadata, tasks and acceptance flags),
-`OUT/probes.jsonl` (`probe_prompt` and `gold`), `OUT/raw/`, family checkpoints and
-`OUT/family_lengths.json`. Fresh Phi/Qwen responses, collection and conversion into the
-normalized extraction format require a separate step; see `INPUT_FORMAT.md`.
-The frozen extraction input remains in `data/primitives/`.
-
-### Validate both waves together
-
-The release's balance is defined on the union: the second wave deliberately corrects the first
-wave's identity imbalance. Individual-wave audits are diagnostic and can fail even when the
-combined dataset passes. Do not require an isolated-wave PASS as a release gate.
-
-```bash
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d1_v3
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d1_v3w2
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --runs results/schema_llm/data/binding_dyn_d1_v3 results/schema_llm/data/binding_dyn_d1_v3w2 --out results/schema_llm/data/binding_dyn_d1_v3w2_audit_union
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d2_v3
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d2_v3w2
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --runs results/schema_llm/data/binding_dyn_d2_v3 results/schema_llm/data/binding_dyn_d2_v3w2 --out results/schema_llm/data/binding_dyn_d2_v3w2_audit_union
-uv run --no-sync python -m dev.schema_llm.binding.dynamics.verify_v3 --runs results/schema_llm/data/binding_dyn_d1_v3 results/schema_llm/data/binding_dyn_d1_v3w2 results/schema_llm/data/binding_dyn_d2_v3 results/schema_llm/data/binding_dyn_d2_v3w2
-```
-
-Corpus checks need full datasets; smoke runs cannot establish balance. Review the combined-wave
-checks before collecting model responses.
-
 ## Primitive extraction
 
 `data/primitives/` contains 813 items, 1,626 responses and 4,395,770 exact saved tokens:
@@ -421,3 +304,120 @@ The repository contains compact Parquet inputs, not weights or activation dumps.
 upload this folder's contents as the repository root, including `.gitignore` and `.python-version`.
 Keep all manifest-listed files and `MANIFEST.json` together. Do not add generated outputs or
 credentials. No remote repository was created by packaging.
+
+## Generation code for `20260915-binding_dyn_d{1,2}_v3w2`
+
+This section describes the two generation waves pooled into the frozen source exports
+`20260915-binding_dyn_d1_v3w2` (300 items) and `20260915-binding_dyn_d2_v3w2` (297 items).
+The original shell scripts are copied **unchanged** under `scripts/schema_llm/`:
+
+- `run_binding_dynamics_d1.sh`: original D1 stage runner.
+- `run_binding_dynamics_d2.sh`: original D2 stage runner.
+- `run_binding_dyn_wave2.sh`: original second-wave generation/audit/downstream orchestration,
+  included to inspect the historical workflow.
+
+Use the D1/D2 runners' existing **`STEP=gen`** option for generation only. Their original
+`WAVE` values are preserved:
+
+| Release generation wave | Original shell setting | Implementation | Raw output folder name |
+| --- | --- | --- | --- |
+| v3 wave 1 | `WAVE=3` | `build_wave3()` | `binding_dyn_d1_v3` / `binding_dyn_d2_v3` |
+| v3 wave 2 | `WAVE=4` | `build_wave4()` | `binding_dyn_d1_v3w2` / `binding_dyn_d2_v3w2` |
+
+The values 3/4 are the generator's existing internal revision numbers. The **export** named
+`20260915-binding_dyn_d*_v3w2` pools both raw generation folders; the raw folder
+`binding_dyn_d*_v3w2` contains only the second wave.
+
+### Where to inspect the generation procedure
+
+- `code/dev/schema_llm/binding/dynamics/design.py`: `build_wave3()` constructs release wave 1
+  with balanced identity assignments and neutral opening beats; `build_wave4()` adds the
+  long/pressure D1 arms and late/pairs D2 arms, continuing the first wave's assignment history.
+- `code/dev/schema_llm/binding/dynamics/prose.py`: prompts used to generate seed passages,
+  continuations, ambiguous prefixes and resolving branches.
+- `code/dev/schema_llm/binding/dynamics/run.py`: generation order, pinned shared prefixes,
+  retries, acceptance checks and resumable family checkpoints.
+- `code/dev/schema_llm/binding/dynamics/audit.py` and `verify.py`: per-cut LLM audits and
+  deterministic passage checks. `confound_audit.py` and `verify_v3.py` provide corpus checks.
+- `code/dev/schema_llm/binding/`: shared cast, task, gold, record and API helpers;
+  `binding/pools/`: name/beat/distractor YAML assets;
+  `code/dev/schema_llm/core/schemas/`: airport and restaurant YAML specifications.
+
+
+These are the retained generator implementation and design notes for this dataset family.
+The current source includes later fixes. Historical seeds/settings are not fully recovered
+(the retained `balance.py` notes that the shipped first-wave name-pool seed was not recorded).
+New API generations therefore do not promise byte-identical reproduction of the saved passages;
+`data/primitives/tasks.parquet` remains the authoritative frozen prompt set.
+
+### Run the original scripts with generation only
+
+Install the locked API dependencies and authenticate with Azure CLI as described above:
+
+```bash
+uv sync --locked --extra api
+az login --use-device-code --scope api://trapi/.default
+```
+
+Run from the root containing this README. The explicit `STEP`, `WAVE` and `NAME` settings
+below select the generation stage and the source datasets' original folder names:
+
+```bash
+STEP=gen WAVE=3 NAME=binding_dyn_d1_v3 bash scripts/schema_llm/run_binding_dynamics_d1.sh
+STEP=gen WAVE=4 NAME=binding_dyn_d1_v3w2 bash scripts/schema_llm/run_binding_dynamics_d1.sh
+STEP=gen WAVE=3 NAME=binding_dyn_d2_v3 bash scripts/schema_llm/run_binding_dynamics_d2.sh
+STEP=gen WAVE=4 NAME=binding_dyn_d2_v3w2 bash scripts/schema_llm/run_binding_dynamics_d2.sh
+```
+
+Outputs land under `results/schema_llm/data/<NAME>/`; logs under `results/schema_llm/logs/`.
+The second-wave generator automatically resumes the same design's first-wave assignment history
+from `results/schema_llm/data/binding_dyn_d1_v3/` or `binding_dyn_d2_v3/`. Keep these names and
+generate the full first wave before its second wave. The stage runners default to the four-model
+TRAPI pool in `binding/config.py`. To use one accessible deployment, prefix a command with
+`POOL=0 MODEL=<deployment>`. Other original controls include `WORKERS`, `MAX_CONCURRENCY`,
+`TRIES`, `AUDIT_N` and `REPAIR`.
+
+The copied scripts contain the full historical pipeline and default to `STEP=all`; use the
+explicit `STEP=gen` commands above for this standalone generation handoff. Other stages, and
+the full `run_binding_dyn_wave2.sh`, call collection/capture/export runners from the original
+checkout that are outside this package's generation scope.
+
+For a small API smoke test, invoke the same original Python generation driver directly:
+
+```bash
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.run --design D1 --wave 3 --smoke --out results/schema_llm/data/binding_dyn_d1_v3_smoke
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.run --design D2 --wave 3 --smoke --out results/schema_llm/data/binding_dyn_d2_v3_smoke
+```
+
+Generation and per-cut audits use TRAPI; no GPU or local model weights are needed. Smoke runs
+use the driver's default deployment `gpt-5.6-sol_2026-07-09`; `--model` overrides it.
+Each wave plans 150 items per design. Saved and accepted counts can be lower after retries;
+the frozen D2 export contains 297 saved items across both waves. Re-running an identical command
+resumes family checkpoints in `OUT/families/`; `REPAIR=1` retries families containing rejected
+items. Use a fresh folder when changing settings, and inspect acceptance summaries before
+continuing. A full second wave needs the same design's full first-wave name pool.
+
+Outputs are `OUT/items.jsonl` (passages, casts, design metadata, tasks and acceptance flags),
+`OUT/probes.jsonl` (`probe_prompt` and `gold`), `OUT/raw/`, family checkpoints and
+`OUT/family_lengths.json`. Fresh Phi/Qwen responses, collection and conversion into the
+normalized extraction format require a separate step; see `INPUT_FORMAT.md`.
+The frozen extraction input remains in `data/primitives/`.
+
+### Validate both waves together
+
+The release's balance is defined on the union: the second wave deliberately corrects the first
+wave's identity imbalance. Individual-wave audits are diagnostic and can fail even when the
+combined dataset passes. Do not require an isolated-wave PASS as a release gate.
+
+```bash
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d1_v3
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d1_v3w2
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --runs results/schema_llm/data/binding_dyn_d1_v3 results/schema_llm/data/binding_dyn_d1_v3w2 --out results/schema_llm/data/binding_dyn_d1_v3w2_audit_union
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d2_v3
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --run results/schema_llm/data/binding_dyn_d2_v3w2
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.confound_audit --runs results/schema_llm/data/binding_dyn_d2_v3 results/schema_llm/data/binding_dyn_d2_v3w2 --out results/schema_llm/data/binding_dyn_d2_v3w2_audit_union
+uv run --no-sync python -m dev.schema_llm.binding.dynamics.verify_v3 --runs results/schema_llm/data/binding_dyn_d1_v3 results/schema_llm/data/binding_dyn_d1_v3w2 results/schema_llm/data/binding_dyn_d2_v3 results/schema_llm/data/binding_dyn_d2_v3w2
+```
+
+Corpus checks need full datasets; smoke runs cannot establish balance. Review the combined-wave
+checks before collecting model responses.
