@@ -433,6 +433,11 @@ DeepSeek-V4-Pro over TRAPI. The default judge matches the existing D1/D2 judge, 
 See [BEHAVIOR.md](BEHAVIOR.md) for the model roster, serving requirements, selected-model/stage
 commands, resume behavior and output dictionary.
 
+Use Linux with NVIDIA/CUDA, `uv`, Git, Azure CLI and TRAPI access. An 80 GB GPU is
+recommended for the largest local model. The script installs locked dependencies and downloads
+missing weights automatically; first use needs network access. Replace `/storage/...` with
+writable paths and keep smoke and full runs in separate folders.
+
 ```bash
 az login --use-device-code --scope api://trapi/.default
 bash scripts/schema_llm/run_d1d2_behavior.sh --check-only
@@ -446,3 +451,16 @@ are retained with null accuracy. The runner exports stable task IDs, source/wave
 judge identity, scores and verbatim texts for later combination with other task families.
 The final offline export includes the bundled Phi/Qwen grades, yielding all ten models on D1/D2
 (5,970 rows). It saves an explicit task crosswalk and export checksums with the results.
+
+Models run **sequentially**: collect one model's D1/D2 responses, grade them, then move to the
+next model. Only one local model is served at a time. Within each model, collection uses up to
+**8 concurrent requests** (`--concurrency 8`), and grading uses up to **4 concurrent judge
+requests** (`--judge-workers 4`). Collection and grading do not overlap by default.
+
+The full `--include-existing` command automatically collects, grades and exports the ten-model
+table. The final `--stage export` command above is only needed to rebuild that table later.
+If interrupted, repeat the same command with the same output folder to resume saved progress.
+Do not run multiple processes in the same output folder simultaneously.
+
+Offline validation passed; live GPU serving and TRAPI access still need the collaborator's
+smoke test on the compute host before the full job.

@@ -108,6 +108,10 @@ export VLLM_VENV=/storage/d1d2-vllm-venv
 export VLLM_GPU_UTIL=0.90
 ```
 
+Models run sequentially: collect one model's D1/D2 responses, grade them, then proceed to the
+next model. Collection and grading do not overlap by default. Within a model, collection uses
+up to 8 concurrent requests; grading uses up to 4 concurrent judge requests.
+
 `--concurrency` defaults to 8, `--port` to 8400 and `--judge-workers` to 4. Context and completion
 budgets have CLI flags shown by `--help`; keep the same collection settings on resume. A fixed
 server seed is recorded, but sampled outputs are not promised to be identical after restarting
