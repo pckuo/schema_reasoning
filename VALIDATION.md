@@ -1,5 +1,41 @@
 # Packaging validation — 2026-11-12
 
+## D1/D2 eight-model behavioral extension — 2026-11-13
+
+- The frozen union inputs contain exactly 300 D1 and 297 D2 prompts, with both waves present.
+  All 597 prompts, passages, gold answers, wave labels and scoring-exclusion flags match the
+  existing `data/primitives/tasks.parquet` exactly. Original source-file hashes and stable task
+  IDs are bundled. The 99 unresolved D2 items retain responses but receive no accuracy grade.
+- Eleven offline tests pass, including interrupted response collection/resume, cached grading,
+  exclusion handling, duplicate/settings/response-identity rejection, transport failures,
+  all eight local/hosted driver routes with stand-in responders, real-input parity, original
+  Phi/Qwen import, changed-judge rejection before collection and owned server cleanup/version gates.
+- Ruff and shell syntax checks pass. The actual shell entrypoint passes `--check-only` using
+  the locked API/vLLM-client environment without torch/transformers in that environment.
+  Dependency installation was validated offline from a copy of the already installed locked
+  environment; fresh downloads are not tested here because this sandbox has no DNS access.
+- An archive extracted under `/private/tmp` passed the actual shell `--check-only` command and
+  the packaged CPU suite: **66 passed, 1 skipped**. The skip is the existing historical-CSV test.
+  Final archive integrity, source imports, shell executable bits and the GitHub 100 MiB file-size
+  ceiling are verified at sealing. All eleven behavioral tests also run in the API/client-only
+  env after the final early judge gate was added.
+- A full-population offline export used clearly labeled synthetic new-model fixtures and the
+  actual saved Phi/Qwen records: **5,970 rows, 10 models, 597 unique tasks, no duplicate primary
+  keys, 4,980 scorable and 990 excluded rows**. The actual shell `--stage export
+  --include-existing` command passed without model/API calls. All prompts/gold/responses are
+  retained and artifact checksums match. These fixtures are temporary audit data, not new model
+  results, and are excluded from the release. Full baseline text/accuracy matches the frozen pack.
+  Re-scoring all 1,194 saved baseline verdicts reproduces every original metric exactly, and
+  `model_display_name` matches all ten labels in the historical core CSV.
+- Local vLLM checkpoint resolution/download, CUDA generation and live TRAPI generation/grading
+  remain unrun. The collaborator must run the real smoke command before the full job.
+- Sampling audit: local and hosted completion caps default to 8,192 and local context to 12,288,
+  matching the original single-draw collection scripts. The hosted 16,384 cap belongs to the
+  later resampling runner. Distill's top-k=50 follows the original collector's actual CLI default,
+  despite the old launcher comment saying "no top-k". Phi-4 remains greedy as in the first draw.
+
+## Original release checks
+
 Checks run on the standalone folder, without another checkout on its import path:
 
 - Installed the locked Python 3.12 environment with GPU/API extras, including the pinned baukit dependency.

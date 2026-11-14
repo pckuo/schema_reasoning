@@ -1,4 +1,4 @@
-# Schema reasoning: dataset generation, primitive extraction and STOP injection
+# Schema reasoning: datasets, behavioral evaluation, primitives and STOP injection
 
 This is a standalone source/data snapshot. No other checkout or original results directory
 is needed. Models, Python packages and Azure credentials are not included.
@@ -10,6 +10,9 @@ Use a Linux NVIDIA/CUDA machine with `uv` and Git installed. For primitive label
 Azure CLI separately and log in with a TRAPI-authorized account as described below.
 All `/storage/...` paths in this README are examples: replace them with writable paths on your host.
 Scripts create their output folders. Install/download access is needed on the first run.
+
+For D1/D2 behavioral response collection and grading, go directly to [BEHAVIOR.md](BEHAVIOR.md).
+The frozen prompts and the existing two subjects' full results are already included.
 
 For the recommended workflow that allows adding TSP later:
 
@@ -42,6 +45,7 @@ seed stream. Do not run both jobs concurrently on one GPU without checking capac
 | `scripts/merge_primitives.sh` | Merge completed extractions and export shared assignments |
 | `scripts/schema_llm/run_binding_dynamics_d{1,2}.sh` | Original D1/D2 stage scripts; `STEP=gen` runs generation only |
 | `scripts/generate_tsp_responses.sh` | Generate TSP responses and an extraction input pack |
+| `scripts/schema_llm/run_d1d2_behavior.sh` | Collect and grade the eight additional D1/D2 subject models |
 | `scripts/run_vstop.sh` | Reproduce schema/TSP STOP experiments using supplied vectors |
 
 As an alternative, `bash scripts/run_primitives.sh --out /storage/primitives` performs capture,
@@ -421,3 +425,24 @@ uv run --no-sync python -m dev.schema_llm.binding.dynamics.verify_v3 --runs resu
 
 Corpus checks need full datasets; smoke runs cannot establish balance. Review the combined-wave
 checks before collecting model responses.
+
+## Collect D1/D2 responses from eight additional models
+
+The frozen 597 prompts (both waves) are ready to run on six local vLLM models plus GPT-5.5 and
+DeepSeek-V4-Pro over TRAPI. The default judge matches the existing D1/D2 judge, GPT-5.6 Terra.
+See [BEHAVIOR.md](BEHAVIOR.md) for the model roster, serving requirements, selected-model/stage
+commands, resume behavior and output dictionary.
+
+```bash
+az login --use-device-code --scope api://trapi/.default
+bash scripts/schema_llm/run_d1d2_behavior.sh --check-only
+bash scripts/schema_llm/run_d1d2_behavior.sh --smoke --out /storage/d1d2-eightway-smoke
+bash scripts/schema_llm/run_d1d2_behavior.sh --include-existing --out /storage/d1d2-eightway
+bash scripts/schema_llm/run_d1d2_behavior.sh --stage export --include-existing --out /storage/d1d2-eightway
+```
+
+The full job produces 4,776 responses and 3,984 grades. Responses to 99 unresolved D2 controls
+are retained with null accuracy. The runner exports stable task IDs, source/wave/family metadata,
+judge identity, scores and verbatim texts for later combination with other task families.
+The final offline export includes the bundled Phi/Qwen grades, yielding all ten models on D1/D2
+(5,970 rows). It saves an explicit task crosswalk and export checksums with the results.
